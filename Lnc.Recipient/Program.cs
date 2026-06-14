@@ -88,15 +88,61 @@ var responseMessage = LncMessageParser.Parse(rawResponse);
 if (responseMessage.Type == MessageType.HandshakeOk)
 {
     Console.WriteLine("Handshake accepted by Initiator.");
+    Console.WriteLine();
 }
 else if (responseMessage.Type == MessageType.HandshakeReject)
 {
     Console.WriteLine("Handshake rejected.");
     Console.WriteLine($"Reason: {responseMessage.Headers.GetValueOrDefault("Reason")}");
+    return;
 }
 else
 {
     Console.WriteLine($"Unexpected response: {responseMessage.Type}");
+    return;
+}
+
+while (true)
+{
+    var incomingMessage = await ReadMessageAsync(stream);
+
+    if (incomingMessage.Type == MessageType.Text)
+    {
+        Console.WriteLine($"Received TEXT: {incomingMessage.Body}");
+
+        var response = new LncMessage
+        {
+            Type = MessageType.TextResponse,
+            Body = $"Received successfully: {incomingMessage.Body}"
+        };
+
+        await SendMessageAsync(stream, response);
+
+        Console.WriteLine("TEXT_RESPONSE sent.");
+        Console.WriteLine();
+
+        continue;
+    }
+
+    if (incomingMessage.Type == MessageType.Close)
+    {
+        Console.WriteLine($"Received CLOSE: {incomingMessage.Body}");
+
+        await SendMessageAsync(stream, new LncMessage
+        {
+            Type = MessageType.Close,
+            Body = "Close accepted."
+        });
+
+        Console.WriteLine("Close response sent.");
+        break;
+    }
+
+    await SendMessageAsync(stream, new LncMessage
+    {
+        Type = MessageType.Error,
+        Headers = { ["Reason"] = $"Unsupported message type: {incomingMessage.Type}" }
+    });
 }
 
 static async Task SendMessageAsync(NetworkStream stream, LncMessage message)
@@ -105,4 +151,14 @@ static async Task SendMessageAsync(NetworkStream stream, LncMessage message)
     var bytes = Encoding.UTF8.GetBytes(rawMessage);
 
     await stream.WriteAsync(bytes);
+}
+
+static async Task<LncMessage> ReadMessageAsync(NetworkStream stream)
+{
+    var buffer = new byte[4096];
+    var bytesRead = await stream.ReadAsync(buffer);
+
+    var rawMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+    return LncMessageParser.Parse(rawMessage);
 }

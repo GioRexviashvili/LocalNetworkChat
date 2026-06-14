@@ -119,6 +119,50 @@ await SendMessageAsync(stream, new LncMessage
 });
 
 Console.WriteLine("Handshake accepted.");
+Console.WriteLine();
+
+var messagesToSend = new[]
+{
+    "Hello, this is the first test message.",
+    "This is the second message after response.",
+    "This proves simplex request-response communication."
+};
+
+foreach (var text in messagesToSend)
+{
+    var textMessage = new LncMessage
+    {
+        Type = MessageType.Text,
+        Body = text
+    };
+
+    Console.WriteLine($"Sending TEXT: {text}");
+    await SendMessageAsync(stream, textMessage);
+
+    var response = await ReadMessageAsync(stream);
+
+    if (response.Type != MessageType.TextResponse)
+    {
+        Console.WriteLine($"Expected TEXT_RESPONSE but received {response.Type}");
+        break;
+    }
+
+    Console.WriteLine($"Received TEXT_RESPONSE: {response.Body}");
+    Console.WriteLine();
+}
+
+Console.WriteLine("Sending CLOSE request...");
+
+await SendMessageAsync(stream, new LncMessage
+{
+    Type = MessageType.Close,
+    Body = "Conversation finished."
+});
+
+var closeResponse = await ReadMessageAsync(stream);
+
+Console.WriteLine($"Received close response: {closeResponse.Type}");
+Console.WriteLine("Connection closed.");
 
 tcpListener.Stop();
 
@@ -128,4 +172,14 @@ static async Task SendMessageAsync(NetworkStream stream, LncMessage message)
     var bytes = Encoding.UTF8.GetBytes(rawMessage);
 
     await stream.WriteAsync(bytes);
+}
+
+static async Task<LncMessage> ReadMessageAsync(NetworkStream stream)
+{
+    var buffer = new byte[4096];
+    var bytesRead = await stream.ReadAsync(buffer);
+
+    var rawMessage = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+    return LncMessageParser.Parse(rawMessage);
 }
