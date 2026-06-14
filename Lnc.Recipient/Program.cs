@@ -2,7 +2,7 @@
 using System.Text;
 using Lnc.Protocol;
 
-const int discoveryPort = 5051;
+const int discoveryPort = ProtocolConstants.DiscoveryPort;
 
 Console.Write("Enter your nickname: ");
 var myNickname = Console.ReadLine();
@@ -34,6 +34,14 @@ while (discoveryInfo is null)
 
         var nickname = message.Headers.GetValueOrDefault("Nickname");
 
+        var version = message.Headers.GetValueOrDefault("Version");
+
+        if (version != ProtocolConstants.Version)
+        {
+            Console.WriteLine("Unsupported protocol version.");
+            continue;
+        }
+        
         if (!string.Equals(nickname, myNickname, StringComparison.OrdinalIgnoreCase))
         {
             Console.WriteLine($"Ignored discovery for nickname: {nickname}");
@@ -73,6 +81,7 @@ var handshakeMessage = new LncMessage
     Type = MessageType.Handshake,
     Headers =
     {
+        ["Version"] = ProtocolConstants.Version,
         ["Request-Id"] = discoveryInfo.RequestId.ToString()
     }
 };
@@ -110,10 +119,18 @@ while (true)
     {
         Console.WriteLine($"Received TEXT: {incomingMessage.Body}");
 
+        Console.Write("Enter response: ");
+        var responseText = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(responseText))
+        {
+            responseText = "Empty response";
+        }
+
         var response = new LncMessage
         {
             Type = MessageType.TextResponse,
-            Body = $"Received successfully: {incomingMessage.Body}"
+            Body = responseText
         };
 
         await SendMessageAsync(stream, response);

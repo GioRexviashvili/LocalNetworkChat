@@ -3,8 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using Lnc.Protocol;
 
-const int discoveryPort = 5051;
-const int tcpPort = 5050;
+const int discoveryPort = ProtocolConstants.DiscoveryPort;
+const int tcpPort = ProtocolConstants.TcpPort;
 
 Console.Write("Enter recipient nickname: ");
 var recipientNickname = Console.ReadLine();
@@ -32,6 +32,7 @@ var discoverMessage = new LncMessage
     Type = MessageType.Discover,
     Headers =
     {
+        ["Version"] = ProtocolConstants.Version,
         ["Nickname"] = recipientNickname,
         ["Deadline"] = activeRequest.Deadline.ToString("O"),
         ["Tcp-Port"] = activeRequest.TcpPort.ToString(),
@@ -66,12 +67,26 @@ var rawHandshake = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
 var handshakeMessage = LncMessageParser.Parse(rawHandshake);
 
+
 if (handshakeMessage.Type != MessageType.Handshake)
 {
     await SendMessageAsync(stream, new LncMessage
     {
         Type = MessageType.HandshakeReject,
         Headers = { ["Reason"] = "Expected HANDSHAKE message." }
+    });
+
+    return;
+}
+
+var handshakeVersion = handshakeMessage.Headers.GetValueOrDefault("Version");
+
+if (handshakeVersion != ProtocolConstants.Version)
+{
+    await SendMessageAsync(stream, new LncMessage
+    {
+        Type = MessageType.HandshakeReject,
+        Headers = { ["Reason"] = "Unsupported protocol version." }
     });
 
     return;
@@ -121,22 +136,40 @@ await SendMessageAsync(stream, new LncMessage
 Console.WriteLine("Handshake accepted.");
 Console.WriteLine();
 
-var messagesToSend = new[]
+while (true)
 {
-    "Hello, this is the first test message.",
-    "This is the second message after response.",
-    "This proves simplex request-response communication."
-};
+    Console.Write("Enter message or type /close: ");
+    var text = Console.ReadLine();
 
-foreach (var text in messagesToSend)
-{
+    if (string.IsNullOrWhiteSpace(text))
+    {
+        Console.WriteLine("Message cannot be empty.");
+        continue;
+    }
+
+    if (text.Equals("/close", StringComparison.OrdinalIgnoreCase))
+    {
+        Console.WriteLine("Sending CLOSE request...");
+
+        await SendMessageAsync(stream, new LncMessage
+        {
+            Type = MessageType.Close,
+            Body = "Conversation finished."
+        });
+
+        var closeResponse = await ReadMessageAsync(stream);
+
+        Console.WriteLine($"Received close response: {closeResponse.Type}");
+        Console.WriteLine("Connection closed.");
+        break;
+    }
+
     var textMessage = new LncMessage
     {
         Type = MessageType.Text,
         Body = text
     };
 
-    Console.WriteLine($"Sending TEXT: {text}");
     await SendMessageAsync(stream, textMessage);
 
     var response = await ReadMessageAsync(stream);
@@ -147,22 +180,9 @@ foreach (var text in messagesToSend)
         break;
     }
 
-    Console.WriteLine($"Received TEXT_RESPONSE: {response.Body}");
+    Console.WriteLine($"Recipient response: {response.Body}");
     Console.WriteLine();
 }
-
-Console.WriteLine("Sending CLOSE request...");
-
-await SendMessageAsync(stream, new LncMessage
-{
-    Type = MessageType.Close,
-    Body = "Conversation finished."
-});
-
-var closeResponse = await ReadMessageAsync(stream);
-
-Console.WriteLine($"Received close response: {closeResponse.Type}");
-Console.WriteLine("Connection closed.");
 
 tcpListener.Stop();
 
