@@ -1,6 +1,13 @@
 namespace Lnc.Protocol;
 
-public class MessageType
+public enum MessageType
 {
-    
+    Discover,
+    Handshake,
+    HandshakeOk,
+    HandshakeReject,
+    Text,
+    TextResponse,
+    Close,
+    Error
 }
