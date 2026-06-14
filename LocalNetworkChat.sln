@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lnc.Protocol", "Lnc.Protocol\Lnc.Protocol.csproj", "{CC88937C-4C83-4D0E-90A5-72553E2EE85D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lnc.Initiator", "Lnc.Initiator\Lnc.Initiator.csproj", "{9C0EA250-5C6D-4D7C-83AA-0A03FA6CDC0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lnc.Recipient", "Lnc.Recipient\Lnc.Recipient.csproj", "{5992F2D6-A79B-47FF-8D12-0F798A9D9C6F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC88937C-4C83-4D0E-90A5-72553E2EE85D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC88937C-4C83-4D0E-90A5-72553E2EE85D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC88937C-4C83-4D0E-90A5-72553E2EE85D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC88937C-4C83-4D0E-90A5-72553E2EE85D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C0EA250-5C6D-4D7C-83AA-0A03FA6CDC0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C0EA250-5C6D-4D7C-83AA-0A03FA6CDC0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C0EA250-5C6D-4D7C-83AA-0A03FA6CDC0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C0EA250-5C6D-4D7C-83AA-0A03FA6CDC0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5992F2D6-A79B-47FF-8D12-0F798A9D9C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5992F2D6-A79B-47FF-8D12-0F798A9D9C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5992F2D6-A79B-47FF-8D12-0F798A9D9C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5992F2D6-A79B-47FF-8D12-0F798A9D9C6F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
